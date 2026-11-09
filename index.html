@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Cellar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f1ea; --card:#fffdf9; --ink:#2a1a1f; --muted:#7a6a6e; --line:#e6dcd0;
+  --wine:#6b1d2f; --wine2:#8a2a40; --gold:#b08840;
+  --past:#a23b2a; --soon:#c4751c; --ready:#3f7a4a; --hold:#5b6b84; --done:#9a9a9a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:24px 18px 60px}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;margin:0}
+h1{font-size:40px;color:var(--wine);letter-spacing:.3px}
+h2{font-size:26px;margin-bottom:12px}
+header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+.sub{color:var(--muted);font-size:13px}
+.stats{display:grid;grid-template-columns:1.3fr repeat(4,1fr);gap:10px;margin:8px 0 20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-family:"Cormorant Garamond",serif;font-size:30px;line-height:1}
+.stat small{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+nav{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:20px;overflow-x:auto}
+nav button{background:none;border:0;padding:10px 14px;font:500 14px Inter;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav button.on{color:var(--wine);border-bottom-color:var(--wine)}
+.view{display:none}.view.on{display:block}
+.btn{background:var(--wine);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:500 14px Inter;cursor:pointer}
+.btn:hover{background:var(--wine2)}
+.btn.ghost{background:transparent;color:var(--wine);border:1px solid var(--line)}
+.btn.ghost:hover{background:#f3e9e3}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;position:relative}
+.card .rank{position:absolute;top:12px;right:14px;font-family:"Cormorant Garamond",serif;font-size:28px;color:#e2d4c6}
+.wname{font-weight:600;font-size:15.5px;padding-right:30px}
+.wmeta{color:var(--muted);font-size:13px}
+.reason{font-size:13.5px;margin:8px 0 10px}
+.badge{display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:99px;color:#fff}
+.b-past{background:var(--past)}.b-soon{background:var(--soon)}.b-ready{background:var(--ready)}.b-hold{background:var(--hold)}.b-done{background:var(--done)}
+.bar{height:6px;background:#eee4da;border-radius:99px;position:relative;margin:8px 0 4px;overflow:visible}
+.bar i{position:absolute;top:0;bottom:0;border-radius:99px;background:#d9c3a5}
+.bar u{position:absolute;top:-3px;width:2px;height:12px;background:var(--ink)}
+.barlbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+input,select,textarea{font:14px Inter;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%}
+textarea{resize:vertical;min-height:90px}
+.toolbar input{flex:1;min-width:180px;width:auto}.toolbar select{width:auto}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:middle}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:#faf6f0;cursor:pointer;user-select:none}
+tr:last-child td{border-bottom:0}
+td.qty{font-weight:600;text-align:center}
+.tblwrap{overflow-x:auto}
+.form{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500}
+.c2{grid-column:span 2}.c3{grid-column:span 3}.c6{grid-column:span 6}.c1{grid-column:span 1}
+.hint{font-size:12.5px;color:var(--muted)}
+.notice{background:#fbf3e4;border:1px solid #ecd9b5;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+.ask{background:linear-gradient(135deg,#6b1d2f,#4a1322);color:#fff;border-radius:14px;padding:18px;margin-bottom:22px}
+.ask h3{font-size:22px;margin-bottom:6px}
+.ask input{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#fff}
+.ask input::placeholder{color:rgba(255,255,255,.6)}
+.ask .btn{background:var(--gold);color:#2a1a1f}
+.answer{white-space:pre-wrap;margin-top:12px;font-size:14px;line-height:1.6;background:rgba(255,255,255,.08);border-radius:10px;padding:12px;display:none}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:14px}
+.modal{position:fixed;inset:0;background:rgba(30,15,20,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal.on{display:flex}
+.modal .box{background:var(--card);border-radius:14px;padding:20px;max-width:440px;width:100%}
+.stars button{background:none;border:0;font-size:24px;cursor:pointer;color:#d8cbbd;padding:0 2px}
+.stars button.on{color:var(--gold)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.on{opacity:1}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:-6px 0 14px}
+@media (max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.stat.val{grid-column:span 2}.form{grid-template-columns:repeat(2,1fr)}.c3,.c6{grid-column:span 2}.c1{grid-column:span 1}h1{font-size:32px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>My Cellar</h1><div class="sub" id="today"></div></div>
+    <div class="row"><button class="btn ghost sm" id="lockBtn" style="display:none" onclick="lock()" title="Sign out on this device">Lock</button>
+    <button class="btn" onclick="openForm()">+ Add wine</button></div>
+  </header>
+
+  <div id="notice"></div>
+
+  <div class="stats">
+    <div class="stat val"><span>Cellar value</span><b id="sValue" style="color:var(--wine);margin-top:4px">–</b><small id="sValueSub"></small></div>
+    <div class="stat"><b id="sBottles">0</b><span>Bottles</span></div>
+    <div class="stat"><b id="sReady" style="color:var(--ready)">0</b><span>Ready now</span></div>
+    <div class="stat"><b id="sSoon" style="color:var(--soon)">0</b><span>Drink soon</span></div>
+    <div class="stat"><b id="sPast" style="color:var(--past)">0</b><span>Past window</span></div>
+  </div>
+
+  <nav>
+    <button data-v="next" class="on">Drink next</button>
+    <button data-v="cellar">Cellar</button>
+    <button data-v="add">Add / edit</button>
+    <button data-v="history">History</button>
+    <button data-v="data">Import / export</button>
+  </nav>
+
+  <!-- DRINK NEXT -->
+  <section class="view on" id="v-next">
+    <div class="ask" id="askBox" style="display:none">
+      <h3>What should I open tonight?</h3>
+      <div class="row">
+        <input id="askQ" placeholder="e.g. lamb roast with friends, Tuesday pizza, something special…" style="flex:1;min-width:200px">
+        <button class="btn" id="askBtn" onclick="askTonight()">Ask</button>
+      </div>
+      <div class="answer" id="askA"></div>
+    </div>
+    <h2>Prioritise these</h2>
+    <div class="legend">
+      <span><span class="badge b-past">Past</span> drink-by year has passed</span>
+      <span><span class="badge b-soon">Soon</span> window closes within ~1 year</span>
+      <span><span class="badge b-ready">Ready</span> in its window</span>
+    </div>
+    <div id="nextList" class="cards"></div>
+    <h2 style="margin-top:28px">Still resting</h2>
+    <div id="holdList" class="cards"></div>
+  </section>
+
+  <!-- CELLAR -->
+  <section class="view" id="v-cellar">
+    <div class="toolbar">
+      <input id="q" placeholder="Search name, producer, region, grape, location…">
+      <select id="fStatus">
+        <option value="instock">In stock</option><option value="all">All (incl. finished)</option>
+        <option value="past">Past window</option><option value="soon">Drink soon</option>
+        <option value="ready">Ready</option><option value="hold">Resting</option><option value="done">Finished</option>
+      </select>
+      <select id="fType"><option value="">All types</option></select>
+    </div>
+    <div class="hint" id="cellarSum" style="margin:-4px 0 10px"></div>
+    <div class="tblwrap"><table>
+      <thead><tr>
+        <th data-s="name">Wine</th><th data-s="vintage">Vintage</th><th data-s="type">Type</th>
+        <th data-s="drinkBy">Window</th><th data-s="score">Status</th><th data-s="qty">Qty</th><th data-s="worth">Value</th><th data-s="location">Where</th><th></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- ADD / EDIT -->
+  <section class="view" id="v-add">
+    <h2 id="formTitle">Add a wine</h2>
+    <form class="form" id="wineForm" autocomplete="off">
+      <input type="hidden" name="id">
+      <label class="c3">Wine name *<input name="name" required placeholder="e.g. Hill of Grace Shiraz"></label>
+      <label class="c3">Producer<input name="producer" placeholder="e.g. Henschke"></label>
+      <label class="c1">Vintage<input name="vintage" type="number" min="1900" max="2100" placeholder="NV"></label>
+      <label class="c1">Bottled / released<input name="bottled" type="number" min="1900" max="2100" placeholder="year"></label>
+      <label class="c2">Type<select name="type"></select></label>
+      <label class="c2">Grape / blend<input name="grape" placeholder="e.g. Shiraz"></label>
+      <label class="c2">Region<input name="region" placeholder="e.g. Eden Valley, SA"></label>
+      <label class="c2">Location in cellar<input name="location" placeholder="e.g. Rack B, row 3"></label>
+      <label class="c1">Bottles<input name="qty" type="number" min="0" value="1"></label>
+      <label class="c1">Paid / btl<input name="price" type="number" min="0" step="0.01" placeholder="$"></label>
+      <label class="c2">Current value / btl<input name="value" type="number" min="0" step="0.01" placeholder="optional — defaults to price paid"></label>
+      <label class="c1">Drink from<input name="drinkFrom" type="number" min="1900" max="2150" placeholder="year"></label>
+      <label class="c1">Drink by<input name="drinkBy" type="number" min="1900" max="2150" placeholder="year"></label>
+      <div class="c6 row">
+        <button type="button" class="btn ghost sm" id="estBtn" onclick="estimateWindow()" style="display:none">✦ Estimate window with Claude</button>
+        <span class="hint" id="estHint">Leave the window blank and I'll use a typical range for the wine type — you can refine it any time.</span>
+      </div>
+      <label class="c6">Notes<textarea name="notes" placeholder="Tasting notes, critic scores, where you bought it…" style="min-height:60px"></textarea></label>
+      <div class="c6 row">
+        <button class="btn" type="submit" id="saveBtn">Save wine</button>
+        <button class="btn ghost" type="button" onclick="resetForm()">Clear</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="view" id="v-history">
+    <h2>Bottles drunk</h2>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Date</th><th>Wine</th><th>Rating</th><th>Notes</th><th></th></tr></thead>
+      <tbody id="hbody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- DATA -->
+  <section class="view" id="v-data">
+    <div id="bulkBox" style="display:none;margin-bottom:26px">
+      <h2>Paste your existing list</h2>
+      <p class="hint">Paste from a spreadsheet, a note, a merchant invoice — any format. Claude will turn it into cellar entries (with drinking windows) for you to review.</p>
+      <textarea id="bulkIn" placeholder="2018 Penfolds Bin 389 x3, rack A&#10;Cloudy Bay Sauv Blanc 2023 - 6 bottles&#10;…" style="min-height:130px"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn" id="bulkBtn" onclick="bulkParse()">Add to cellar</button><span class="hint" id="bulkHint"></span></div>
+    </div>
+    <h2>Backup</h2>
+    <p class="hint">Copy your whole cellar as JSON to keep a backup, or paste a backup below to restore it.</p>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn ghost" onclick="copyExport('json')">Copy as JSON</button>
+      <button class="btn ghost" onclick="copyExport('csv')">Copy as CSV (for spreadsheets)</button>
+    </div>
+    <textarea id="importIn" placeholder="Paste a JSON backup here…"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn ghost" onclick="importJson()">Restore from JSON</button></div>
+  </section>
+</div>
+
+<div class="modal" id="drinkModal"><div class="box">
+  <h2 style="font-size:24px">Cheers 🍷</h2>
+  <div id="drinkName" class="wmeta" style="margin-bottom:12px"></div>
+  <div class="stars" id="stars"></div>
+  <label class="hint" style="display:block;margin:10px 0 4px">How was it? (optional)</label>
+  <textarea id="drinkNote" style="min-height:60px" placeholder="Drinking beautifully / needs more time / past it…"></textarea>
+  <label class="hint" style="display:block;margin:10px 0 4px">Date opened</label>
+  <input id="drinkDate" type="date">
+  <div class="row" style="margin-top:12px;justify-content:flex-end">
+    <button class="btn ghost" onclick="closeDrink()">Cancel</button>
+    <button class="btn" id="drinkOk" onclick="confirmDrink()">Log bottle</button>
+  </div>
+</div></div>
+
+<div class="modal" id="confirmModal"><div class="box">
+  <div id="confirmText" style="margin-bottom:14px"></div>
+  <div class="row" style="justify-content:flex-end">
+    <button class="btn ghost" onclick="closeConfirm()">Cancel</button>
+    <button class="btn" id="confirmOk">Delete</button>
+  </div>
+</div></div>
+
+<div class="modal" id="loginModal"><div class="box">
+  <h2 style="font-size:26px;color:var(--wine)">My Cellar</h2>
+  <p class="hint" style="margin:4px 0 12px">Enter your cellar password.</p>
+  <form onsubmit="submitLogin(event)">
+    <input id="loginPw" type="password" autocomplete="current-password" placeholder="Password">
+    <div id="loginErr" style="color:var(--past);font-size:13px;min-height:18px;margin-top:6px"></div>
+    <button class="btn" style="width:100%;margin-top:6px">Open cellar</button>
+  </form>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TYPES = {
+  "Red":        {from:3, by:10},
+  "Light red":  {from:1, by:6},
+  "Full red":   {from:5, by:15},
+  "White":      {from:1, by:4},
+  "Aged white": {from:3, by:12},
+  "Rosé":       {from:0, by:2},
+  "Sparkling":  {from:1, by:5},
+  "Sweet":      {from:3, by:20},
+  "Fortified":  {from:5, by:30},
+};
+const NOW = new Date();
+const YEAR = NOW.getFullYear();
+const S = { wines:new Map(), log:new Map(), mode:"loading", pending:0, key:"", db:null, sample:null, sort:{k:"score",d:-1} };
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"),2200); }
+
+$("today").textContent = NOW.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+const typeSel = document.querySelector('[name=type]');
+Object.keys(TYPES).forEach(t => { typeSel.add(new Option(t,t)); $("fType").add(new Option(t,t)); });
+
+/* ---------- drinking window & priority ---------- */
+function windowOf(w){
+  const base = Number(w.vintage) || Number(w.bottled) || Number(w.addedYear) || YEAR;
+  const t = TYPES[w.type] || TYPES.Red;
+  const from = Number(w.drinkFrom) || base + t.from;
+  const by = Number(w.drinkBy) || base + t.by;
+  return { from, by: Math.max(by, from), est: !(w.drinkFrom && w.drinkBy) };
+}
+function assess(w){
+  const {from, by, est} = windowOf(w);
+  const qty = Number(w.qty)||0;
+  if (qty <= 0) return {status:"done", score:-999, from, by, est, reason:"Finished"};
+  if (by < YEAR) {
+    const yrs = YEAR - by;
+    return {status:"past", score:100 + yrs*5 + qty, from, by, est,
+      reason:`Window closed ${by} (${yrs} yr${yrs>1?"s":""} ago). Open ${qty>1?"these":"it"} soon — ${qty} left.`};
+  }
+  if (YEAR >= from) {
+    const yearsLeft = by - YEAR + 1;               // drinking seasons remaining incl. this one
+    const perYear = qty / yearsLeft;
+    let score = 80 - (yearsLeft-1)*8 + Math.min(25, perYear*5);
+    const soon = yearsLeft <= 1 || (yearsLeft <= 2 && perYear >= 3);
+    let reason = by === YEAR ? `Window closes this year.` : `Drink by ${by}.`;
+    if (qty > 1) reason += ` ${qty} bottles — about ${perYear < 1 ? "1 every " + Math.round(1/perYear) + " yrs" : (Math.round(perYear*10)/10) + " a year"} to finish in time.`;
+    else reason += ` Last bottle.`;
+    return {status: soon ? "soon" : "ready", score, from, by, est, reason};
+  }
+  const wait = from - YEAR;
+  return {status:"hold", score:-wait*5, from, by, est, reason:`Resting — ready from ${from} (${wait} yr${wait>1?"s":""}).`};
+}
+const AUD = new Intl.NumberFormat("en-AU",{style:"currency",currency:"AUD",maximumFractionDigits:0});
+const unitVal = w => Number(w.value) || Number(w.price) || 0;
+const LABEL = {past:"Past window", soon:"Drink soon", ready:"Ready", hold:"Resting", done:"Finished"};
+
+/* ---------- storage ---------- */
+function localLoad(){
+  try{ const d = JSON.parse(localStorage.getItem("cellar.v1")||"{}");
+    (d.wines||[]).forEach(w=>S.wines.set(w.id,w)); (d.log||[]).forEach(l=>S.log.set(l.id,l)); }catch(e){}
+}
+function localSave(){ try{ localStorage.setItem("cellar.v1", JSON.stringify({wines:[...S.wines.values()], log:[...S.log.values()]})); }catch(e){} }
+
+async function persist(ops){
+  // ops: [{kind:"wine"|"log", action:"put"|"del", item?, id?}]
+  if (S.mode==="db"){
+    for (const o of ops){ const ref = S.db.collection(o.kind==="wine"?"wines":"log").doc(o.action==="put"?o.item.id:o.id);
+      try{ o.action==="put" ? await ref.set(o.item) : await ref.delete(); }catch(e){ dbErr(e); } }
+  } else if (S.mode==="api"){
+    S.pending++;
+    try{ for (let i=0;i<ops.length;i+=400){ const r = await apiFetch("POST", {ops:ops.slice(i,i+400)}); if (!r.ok) throw r; } }
+    catch(e){ if (e && e.status===401) showLogin("Please enter your password again."); else toast("Couldn't save — check your connection."); }
+    S.pending--;
+  } else localSave();
+}
+async function putWine(w){ S.wines.set(w.id, w); render(); await persist([{kind:"wine",action:"put",item:w}]); }
+async function delWine(id){ S.wines.delete(id); render(); await persist([{kind:"wine",action:"del",id}]); }
+async function putLog(l){ S.log.set(l.id, l); render(); await persist([{kind:"log",action:"put",item:l}]); }
+async function delLog(id){ S.log.delete(id); render(); await persist([{kind:"log",action:"del",id}]); }
+async function putMany(wines, logs){
+  (wines||[]).forEach(w=>S.wines.set(w.id,w)); (logs||[]).forEach(l=>S.log.set(l.id,l)); render();
+  await persist([...(wines||[]).map(item=>({kind:"wine",action:"put",item})), ...(logs||[]).map(item=>({kind:"log",action:"put",item}))]);
+}
+
+/* ---------- self-hosted (Vercel) storage ---------- */
+const KEY_LS = "cellar.key";
+const getKey = () => { try{ return localStorage.getItem(KEY_LS)||""; }catch(e){ return S.key||""; } };
+const setKey = k => { S.key=k; try{ k ? localStorage.setItem(KEY_LS,k) : localStorage.removeItem(KEY_LS); }catch(e){} };
+function apiFetch(method, body){
+  return fetch("/api/data", {method, headers:{"x-cellar-key":getKey()||S.key||"", ...(body?{"Content-Type":"application/json"}:{})},
+    body: body?JSON.stringify(body):undefined, cache:"no-store"});
+}
+async function apiLoad(){
+  if (S.pending>0) return;
+  let r; try{ r = await apiFetch("GET"); }catch(e){ $("notice").innerHTML='<div class="notice">Can’t reach your cellar right now — showing what’s loaded so far.</div>'; return; }
+  if (r.status===401){ showLogin(getKey()? "That password didn’t work." : ""); return; }
+  if (r.status===500){ let j={}; try{ j=await r.json(); }catch(e){}
+    if (j.error==="setup"){ $("notice").innerHTML = `<div class="notice"><b>Almost there.</b> In your Vercel project, ${j.missing&&j.missing.database?"connect an Upstash Redis database (Storage tab)":""}${j.missing&&j.missing.database&&j.missing.password?" and ":""}${j.missing&&j.missing.password?"add a <code>CELLAR_PASSWORD</code> environment variable":""}, then redeploy.</div>`; return; } }
+  if (!r.ok){ $("notice").innerHTML='<div class="notice">Your cellar couldn’t be loaded right now.</div>'; return; }
+  const d = await r.json();
+  if (S.pending>0) return;
+  S.wines = new Map((d.wines||[]).map(w=>[w.id,w])); S.log = new Map((d.log||[]).map(l=>[l.id,l]));
+  hideLogin(); $("notice").innerHTML=""; render();
+}
+function showLogin(msg){ $("loginErr").textContent = msg||""; $("loginModal").classList.add("on"); setTimeout(()=>$("loginPw").focus(),50); }
+function hideLogin(){ $("loginModal").classList.remove("on"); $("lockBtn").style.display = S.mode==="api" ? "" : "none"; }
+async function submitLogin(e){ e.preventDefault(); const k=$("loginPw").value; if(!k) return; setKey(k); $("loginPw").value=""; await apiLoad(); }
+function lock(){ setKey(""); S.wines=new Map(); S.log=new Map(); render(); showLogin(""); }
+async function tryApi(){
+  if (!/^https?:$/.test(location.protocol)) return false;
+  let r; try{ r = await apiFetch("GET"); }catch(e){ return false; }
+  if (r.status===404 || !(r.headers.get("content-type")||"").includes("json")) return false;
+  S.mode="api";
+  await apiLoad();
+  setInterval(()=>{ if (document.visibilityState==="visible" && !$("loginModal").classList.contains("on")) apiLoad(); }, 30000);
+  document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState==="visible" && !$("loginModal").classList.contains("on")) apiLoad(); });
+  return true;
+}
+function dbErr(e){
+  if (e && e.code==="quota_exceeded") toast("Storage is full — remove some finished wines or history.");
+  else if (e && e.code==="invalid_argument") toast("Only the cellar's owner can make changes.");
+  else toast("Couldn't save — check your connection.");
+}
+
+async function init(){
+  render();
+  if (!window.claude || !window.claude.use){ if (!(await tryApi())) startLocal(); return; }
+  let db = null;
+  try { db = await window.claude.use("db"); } catch(e){}
+  if (!db){ startLocal(); }
+  else {
+    S.db = db; S.mode = "db";
+    const timer = setTimeout(()=>{ $("notice").innerHTML = '<div class="notice">Your cellar can’t be reached yet — showing what’s loaded so far.</div>'; }, 10000);
+    let gotW=false, gotL=false;
+    const done = () => { if (gotW && gotL){ clearTimeout(timer); $("notice").innerHTML=""; } };
+    db.collection("wines").onSnapshot(snap => {
+      S.wines = new Map(snap.docs.map(d => [d.id, {...d.data(), id:d.id}]));
+      if (!snap.metadata.fromCache){ gotW=true; done(); }
+      render();
+    }, e => { clearTimeout(timer); $("notice").innerHTML='<div class="notice">Your cellar couldn’t be loaded right now.</div>'; });
+    db.collection("log").onSnapshot(snap => {
+      S.log = new Map(snap.docs.map(d => [d.id, {...d.data(), id:d.id}]));
+      if (!snap.metadata.fromCache){ gotL=true; done(); }
+      render();
+    }, e => {});
+  }
+  try { S.sample = await window.claude.use("sample"); } catch(e){}
+  if (S.sample){ $("askBox").style.display=""; $("estBtn").style.display=""; $("bulkBox").style.display="";
+    $("estHint").textContent = "Leave blank for a typical range by type, or let Claude estimate it from the wine's details."; }
+}
+function startLocal(){
+  S.mode="local"; localLoad();
+  $("notice").innerHTML = '<div class="notice">Saving in this browser only. Open this page from your Claude artifacts to keep your cellar synced across devices.</div>';
+  render();
+}
+
+/* ---------- render ---------- */
+function rows(){ return [...S.wines.values()].map(w => ({...w, ...assess(w), worth: unitVal(w)*(Number(w.qty)||0)})); }
+function bar(a){
+  const lo = Math.min(a.from, YEAR) - 1, hi = Math.max(a.by, YEAR) + 1, span = hi - lo;
+  const l = (a.from-lo)/span*100, r = (a.by-lo+1)/span*100, n = (YEAR-lo+0.5)/span*100;
+  return `<div class="bar"><i style="left:${l}%;width:${r-l}%"></i><u style="left:${n}%"></u></div>
+          <div class="barlbl"><span>${a.from}</span><span>${a.est?"est. window":"window"} · today ▲</span><span>${a.by}</span></div>`;
+}
+function card(w, i){
+  const sub = [w.producer, w.region, w.grape].filter(Boolean).map(esc).join(" · ");
+  return `<div class="card">${i!=null?`<div class="rank">${i+1}</div>`:""}
+    <div class="wname" style="cursor:pointer" title="Edit" onclick="openForm('${w.id}')">${esc(w.vintage||"NV")} ${esc(w.name)}</div>
+    <div class="wmeta">${sub || esc(w.type)}${w.bottled?` · bottled ${esc(w.bottled)}`:""}${w.location?` · 📍 ${esc(w.location)}`:""}</div>
+    <div class="reason"><span class="badge b-${w.status}">${LABEL[w.status]}</span> ${esc(w.reason)}</div>
+    ${bar(w)}
+    <div class="row" style="margin-top:10px">
+      <button class="btn sm" onclick="openDrink('${w.id}')">Drink one</button>
+      <button class="btn ghost sm" onclick="openForm('${w.id}')">✎ Edit</button>
+      <span class="wmeta" style="margin-left:auto">${w.qty} btl${w.qty>1?"s":""}${w.worth?" · "+AUD.format(w.worth):""}</span>
+    </div></div>`;
+}
+function render(){
+  const all = rows(), stock = all.filter(w => w.status!=="done");
+  $("sBottles").textContent = stock.reduce((s,w)=>s+Number(w.qty),0);
+  const cnt = st => stock.filter(w=>w.status===st).reduce((s,w)=>s+Number(w.qty),0);
+  const tot = stock.reduce((s,w)=>s+unitVal(w)*Number(w.qty),0);
+  const paid = stock.reduce((s,w)=>s+(Number(w.price)||0)*Number(w.qty),0);
+  const priced = stock.filter(w=>unitVal(w)>0).reduce((s,w)=>s+Number(w.qty),0);
+  const btls = stock.reduce((s,w)=>s+Number(w.qty),0);
+  $("sValue").textContent = AUD.format(tot);
+  let sub = [];
+  if (paid && Math.round(paid)!==Math.round(tot)){ const g=tot-paid; sub.push(`paid ${AUD.format(paid)} · ${g>=0?"▲":"▼"} ${AUD.format(Math.abs(g))}`); }
+  if (priced && priced<btls) sub.push(`${btls-priced} btl${btls-priced>1?"s":""} unpriced`);
+  else if (priced) sub.push(`avg ${AUD.format(tot/priced)} / btl`);
+  $("sValueSub").textContent = sub.join(" · ");
+  $("sReady").textContent = cnt("ready"); $("sSoon").textContent = cnt("soon"); $("sPast").textContent = cnt("past");
+
+  const pri = stock.filter(w => w.status!=="hold").sort((a,b)=>b.score-a.score);
+  const hold = stock.filter(w => w.status==="hold").sort((a,b)=>b.score-a.score);
+  if (S.mode==="loading") $("nextList").innerHTML = `<div class="empty">Opening the cellar door…</div>`;
+  else if (!stock.length) $("nextList").innerHTML = `<div class="empty">Your cellar is empty.<br><br><button class="btn" onclick="openForm()">Add your first wine</button>${S.sample?` &nbsp; <button class="btn ghost" onclick="show('data')">Paste an existing list</button>`:""}</div>`;
+  else $("nextList").innerHTML = pri.length ? pri.slice(0,9).map(card).join("") : `<div class="empty">Nothing is in its drinking window yet — patience!</div>`;
+  $("holdList").innerHTML = hold.length ? hold.map(w=>card(w)).join("") : `<div class="empty">Nothing resting.</div>`;
+
+  // cellar table
+  const q = $("q").value.trim().toLowerCase(), fs = $("fStatus").value, ft = $("fType").value;
+  let list = all.filter(w => {
+    if (fs==="instock" && w.status==="done") return false;
+    if (!["instock","all"].includes(fs) && w.status!==fs) return false;
+    if (ft && w.type!==ft) return false;
+    if (q && ![w.name,w.producer,w.region,w.grape,w.location,w.notes,w.vintage].join(" ").toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const {k,d} = S.sort;
+  list.sort((a,b)=>{ let x=a[k], y=b[k]; if(k==="drinkBy"){x=a.by;y=b.by;}
+    if (typeof x==="number"||typeof y==="number"||!isNaN(Number(x))&&!isNaN(Number(y))&&x!==""&&y!==""){ return ((Number(x)||0)-(Number(y)||0))*d; }
+    return String(x||"").localeCompare(String(y||""))*d; });
+  const lb = list.reduce((s,w)=>s+Number(w.qty||0),0), lv = list.reduce((s,w)=>s+w.worth,0);
+  $("cellarSum").textContent = `${list.length} wine${list.length!==1?"s":""} · ${lb} bottle${lb!==1?"s":""}${lv?" · "+AUD.format(lv):""}`;
+  $("tbody").innerHTML = list.length ? list.map(w=>`<tr>
+      <td style="cursor:pointer" title="Edit" onclick="openForm('${w.id}')"><b>${esc(w.name)}</b><div class="wmeta">${[w.producer,w.region].filter(Boolean).map(esc).join(" · ")}</div></td>
+      <td>${esc(w.vintage||"NV")}${w.bottled?`<div class="wmeta">btl ${esc(w.bottled)}</div>`:""}</td><td>${esc(w.type)}</td>
+      <td>${w.from}–${w.by}${w.est?' <span class="wmeta">est.</span>':""}</td>
+      <td><span class="badge b-${w.status}">${LABEL[w.status]}</span></td>
+      <td class="qty">${w.qty}</td><td style="white-space:nowrap">${w.worth?AUD.format(w.worth):'<span class="wmeta">–</span>'}${w.qty>1&&unitVal(w)?`<div class="wmeta">${AUD.format(unitVal(w))} ea</div>`:""}</td><td>${esc(w.location||"")}</td>
+      <td style="white-space:nowrap">${w.qty>0?`<button class="btn sm" onclick="openDrink('${w.id}')">Drink</button> `:""}
+        <button class="btn ghost sm" onclick="openForm('${w.id}')">✎ Edit</button>
+        <button class="btn ghost sm" onclick="askDelete('${w.id}')" title="Delete">✕</button></td></tr>`).join("")
+    : `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">No wines match.</td></tr>`;
+
+  // history
+  const logs = [...S.log.values()].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  $("hbody").innerHTML = logs.length ? logs.map(l=>`<tr>
+      <td style="white-space:nowrap">${esc(new Date(l.date).toLocaleDateString())}</td>
+      <td>${esc(l.vintage||"NV")} ${esc(l.name)}</td>
+      <td style="color:var(--gold)">${l.rating?"★".repeat(l.rating):""}</td>
+      <td>${esc(l.note||"")}</td>
+      <td style="white-space:nowrap"><button class="btn ghost sm" onclick="openLogEdit('${l.id}')">✎ Edit</button>
+        <button class="btn ghost sm" onclick="undoLog('${l.id}')" title="Remove and put bottle back">Undo</button></td></tr>`).join("")
+    : `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">No bottles logged yet.</td></tr>`;
+}
+
+/* ---------- nav & filters ---------- */
+function show(v){ document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="v-"+v)); window.scrollTo({top:0,behavior:"smooth"}); }
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>show(b.dataset.v));
+["q","fStatus","fType"].forEach(id=>$(id).addEventListener("input",render));
+document.querySelectorAll("th[data-s]").forEach(th=>th.onclick=()=>{ const k=th.dataset.s;
+  S.sort = {k, d: S.sort.k===k ? -S.sort.d : (k==="name"||k==="type"||k==="location"?1:-1)}; render(); });
+
+/* ---------- form ---------- */
+const F = $("wineForm");
+function openForm(id){
+  resetForm();
+  if (id){ const w = S.wines.get(id); if (w){ for (const el of F.elements) if (el.name && w[el.name]!=null) el.value = w[el.name];
+    $("formTitle").textContent="Edit wine"; $("saveBtn").textContent="Save changes"; } }
+  show("add"); F.name.focus();
+}
+function resetForm(){ F.reset(); F.id.value=""; F.qty.value=1; $("formTitle").textContent="Add a wine"; $("saveBtn").textContent="Save wine"; }
+F.addEventListener("submit", async e => {
+  e.preventDefault();
+  const fd = Object.fromEntries(new FormData(F));
+  const old = fd.id ? S.wines.get(fd.id) : null;
+  const num = v => v===""||v==null ? null : Number(v);
+  const w = { id: fd.id || uid(), name: fd.name.trim(), producer: fd.producer.trim(), vintage: num(fd.vintage), bottled: num(fd.bottled),
+    type: fd.type, grape: fd.grape.trim(), region: fd.region.trim(), qty: Math.max(0, num(fd.qty)||0),
+    price: num(fd.price), value: num(fd.value), location: fd.location.trim(), drinkFrom: num(fd.drinkFrom), drinkBy: num(fd.drinkBy),
+    notes: fd.notes.trim(), addedYear: old?.addedYear || YEAR, added: old?.added || NOW.toISOString() };
+  if (!w.name) return;
+  await putWine(w); toast(old ? "Saved" : "Added to cellar"); resetForm(); show(old ? "cellar" : "next");
+});
+
+async function estimateWindow(){
+  if (!S.sample) return;
+  const fd = Object.fromEntries(new FormData(F));
+  if (!fd.name.trim()){ toast("Enter the wine name first"); return; }
+  const btn=$("estBtn"); btn.disabled=true; btn.textContent="Estimating…";
+  try{
+    const r = await S.sample.json(`You are an experienced sommelier. Estimate the optimal drinking window for this wine, given it is cellared in good conditions. The current year is ${YEAR}.
+Wine: ${JSON.stringify({name:fd.name, producer:fd.producer, vintage:fd.vintage||"NV", bottledOrReleased:fd.bottled||null, type:fd.type, grape:fd.grape, region:fd.region})}
+Reply with JSON only: {"drinkFrom": <year>, "drinkBy": <year>, "note": "<one short sentence on why, max 25 words>"}`, {modelTier:"default"});
+    if (r && r.drinkFrom && r.drinkBy){ F.drinkFrom.value=r.drinkFrom; F.drinkBy.value=r.drinkBy;
+      $("estHint").textContent = "Claude's estimate: " + (r.note||"") + " Adjust if you know better."; }
+    else toast("Couldn't estimate that one");
+  }catch(e){ toast(e && e.code==="rate_limited" ? "Too many requests — try again shortly" : "Estimate unavailable"); }
+  btn.disabled=false; btn.textContent="✦ Estimate window with Claude";
+}
+
+/* ---------- drink / delete ---------- */
+let drinkId=null, rating=0, editLogId=null;
+const isoDay = d => { const x=new Date(d); return new Date(x.getTime()-x.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+function openDrink(id){ drinkId=id; editLogId=null; rating=0; const w=S.wines.get(id);
+  $("drinkName").textContent = `${w.vintage||"NV"} ${w.name}${w.producer?" — "+w.producer:""}`; $("drinkNote").value="";
+  $("drinkDate").value = isoDay(new Date()); $("drinkOk").textContent="Log bottle"; $("drinkOk").onclick=confirmDrink;
+  drawStars(); $("drinkModal").classList.add("on"); }
+function openLogEdit(id){ const l=S.log.get(id); if(!l) return; editLogId=id; drinkId=null; rating=l.rating||0;
+  $("drinkName").textContent = `${l.vintage||"NV"} ${l.name}${l.producer?" — "+l.producer:""}`; $("drinkNote").value=l.note||"";
+  $("drinkDate").value = isoDay(l.date); $("drinkOk").textContent="Save changes"; $("drinkOk").onclick=saveLogEdit;
+  drawStars(); $("drinkModal").classList.add("on"); }
+async function saveLogEdit(){ const l=S.log.get(editLogId); if(!l) return closeDrink();
+  const d=$("drinkDate").value; const upd={...l, rating:rating||null, note:$("drinkNote").value.trim(),
+    date: d ? new Date(d+"T19:00:00").toISOString() : l.date};
+  closeDrink(); editLogId=null; await putLog(upd); toast("Saved"); }
+const pickedDate = () => { const d=$("drinkDate").value; return d ? new Date(d+"T19:00:00").toISOString() : new Date().toISOString(); };
+function drawStars(){ $("stars").innerHTML=[1,2,3,4,5].map(n=>`<button class="${n<=rating?"on":""}" onclick="rating=${n};drawStars()">★</button>`).join(""); }
+function closeDrink(){ $("drinkModal").classList.remove("on"); drinkId=null; }
+async function confirmDrink(){
+  const w = S.wines.get(drinkId); if (!w) return closeDrink();
+  const note = $("drinkNote").value.trim(), r = rating, date = pickedDate(); closeDrink();
+  await putWine({...w, qty: Math.max(0, Number(w.qty)-1)});
+  await putLog({id:uid(), wineId:w.id, name:w.name, vintage:w.vintage, producer:w.producer||"", date, rating:r||null, note});
+  toast(Number(w.qty)-1>0 ? `Logged — ${Number(w.qty)-1} left` : "Logged — that was the last one");
+}
+async function undoLog(id){ const l=S.log.get(id); if(!l) return; const w=S.wines.get(l.wineId);
+  await delLog(id); if (w) await putWine({...w, qty:Number(w.qty)+1}); toast("Bottle put back"); }
+function askDelete(id){ const w=S.wines.get(id);
+  $("confirmText").innerHTML = `Delete <b>${esc(w.vintage||"NV")} ${esc(w.name)}</b> from your cellar? This can't be undone. <div class="hint" style="margin-top:6px">(If you drank it, use “Drink” instead so it shows in your history.)</div>`;
+  $("confirmOk").onclick = async ()=>{ closeConfirm(); await delWine(id); toast("Deleted"); };
+  $("confirmModal").classList.add("on"); }
+function closeConfirm(){ $("confirmModal").classList.remove("on"); }
+
+/* ---------- ask Claude ---------- */
+let askCtl=null;
+async function askTonight(){
+  if (!S.sample) return;
+  const stock = rows().filter(w=>w.status!=="done");
+  if (!stock.length){ toast("Add some wines first"); return; }
+  const q = $("askQ").value.trim() || "a regular weeknight at home";
+  const list = stock.map(w=>`- ${w.vintage||"NV"} ${w.name}${w.producer?" ("+w.producer+")":""}${w.bottled?" [bottled "+w.bottled+"]":""} | ${w.type}${w.grape?", "+w.grape:""}${w.region?", "+w.region:""} | ${w.qty} btl | window ${w.from}-${w.by} | status: ${LABEL[w.status]}${w.location?" | at "+w.location:""}`).join("\n");
+  const a=$("askA"); a.style.display="block"; a.textContent="Thinking…"; $("askBtn").disabled=true;
+  if (askCtl) askCtl.abort(); askCtl = new AbortController();
+  try{
+    const r = await S.sample(`You are a friendly, knowledgeable sommelier helping someone choose from THEIR OWN cellar. Today is ${NOW.toDateString()}.
+Occasion / food: ${q}
+
+Their cellar (only recommend from this list):
+${list}
+
+Pick the best 1–2 bottles for this occasion. Strongly favour wines that are past or near the end of their window, or that they have many bottles of, unless the occasion clearly calls for something special. Do not suggest wines marked "Resting" unless nothing else fits. For each pick give one or two sentences on why (pairing + urgency) and where it is if a location is given. Plain text, no markdown headings, under 120 words.`,
+      {signal:askCtl.signal, onText:({text})=>{ a.textContent=text; }});
+    a.textContent = r.text;
+  }catch(e){ if (e?.name!=="AbortError") a.textContent = e?.code==="rate_limited" ? "Too many requests — try again in a minute." : "Couldn't get a suggestion right now."; }
+  $("askBtn").disabled=false;
+}
+$("askQ").addEventListener("keydown",e=>{ if(e.key==="Enter") askTonight(); });
+
+/* ---------- bulk / import / export ---------- */
+async function bulkParse(){
+  const txt=$("bulkIn").value.trim(); if(!txt||!S.sample) return;
+  const btn=$("bulkBtn"); btn.disabled=true; $("bulkHint").textContent="Reading your list…";
+  try{
+    const r = await S.sample.json(`Convert this wine list into structured cellar entries. Current year: ${YEAR}.
+Allowed types: ${Object.keys(TYPES).join(", ")}.
+For each wine, estimate a realistic drinking window (drinkFrom, drinkBy as years) based on producer, region, grape and vintage.
+Return JSON only: {"wines":[{"name":"","producer":"","vintage":<int or null>,"bottled":<bottling or release year as int, or null>,"type":"","grape":"","region":"","qty":<int, default 1>,"price":<number or null>,"location":"","drinkFrom":<int>,"drinkBy":<int>,"notes":""}]}
+
+List:
+${txt.slice(0,12000)}`, {modelTier:"default"});
+    const ws = (r && r.wines) || [];
+    for (const x of ws){ if(!x.name) continue;
+      await putWine({ id:uid(), name:String(x.name), producer:x.producer||"", vintage:Number(x.vintage)||null, bottled:Number(x.bottled)||null,
+        type: TYPES[x.type]?x.type:"Red", grape:x.grape||"", region:x.region||"", qty:Math.max(0,Number(x.qty)||1),
+        price:Number(x.price)||null, location:x.location||"", drinkFrom:Number(x.drinkFrom)||null, drinkBy:Number(x.drinkBy)||null,
+        notes:x.notes||"", addedYear:YEAR, added:NOW.toISOString() }); }
+    $("bulkHint").textContent = ws.length ? `Added ${ws.length} wine${ws.length>1?"s":""} — check them in the Cellar tab.` : "Couldn't find any wines in that text.";
+    if (ws.length) $("bulkIn").value="";
+  }catch(e){ $("bulkHint").textContent = e?.code==="rate_limited" ? "Too many requests — try again shortly." : "Couldn't read that list right now."; }
+  btn.disabled=false;
+}
+async function copyExport(kind){
+  const ws=[...S.wines.values()];
+  let out;
+  if (kind==="json") out = JSON.stringify({wines:ws, log:[...S.log.values()]}, null, 2);
+  else { const cols=["name","producer","vintage","bottled","type","grape","region","qty","price","value","location","drinkFrom","drinkBy","notes"];
+    const q=v=>{ v=String(v??""); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+    out = [cols.join(","), ...ws.map(w=>cols.map(c=>q(w[c])).join(","))].join("\n"); }
+  try{ await navigator.clipboard.writeText(out); toast("Copied to clipboard"); }
+  catch(e){ $("importIn").value=out; $("importIn").select(); toast("Select-all and copy from the box below"); }
+}
+async function importJson(){
+  let d; try{ d=JSON.parse($("importIn").value); }catch(e){ toast("That doesn't look like a JSON backup"); return; }
+  const clean = x => ({...x, id: String(x.id||uid()).replace(/[^\w.~:@+-]/g,"").slice(0,100)||uid()});
+  const ws = (Array.isArray(d) ? d : (d.wines||[])).filter(w=>w&&w.name).map(clean);
+  const ls = (d.log||[]).filter(l=>l&&l.name).map(clean); const n = ws.length;
+  await putMany(ws, ls);
+  toast(`Restored ${n} wine${n!==1?"s":""}`); $("importIn").value="";
+}
+
+init();
+</script>
+</body>
+</html>

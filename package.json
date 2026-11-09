@@ -1,0 +1,6 @@
+{
+  "name": "my-cellar",
+  "private": true,
+  "description": "Wine cellar tracker with drink-next suggestions",
+  "engines": { "node": ">=18" }
+}
