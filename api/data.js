@@ -2,9 +2,18 @@
 // Needs: an Upstash Redis database (Vercel → Storage → Upstash for Redis) and a CELLAR_PASSWORD env var.
 const crypto = require("crypto");
 
-const REDIS_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const REDIS_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-const PASSWORD = process.env.CELLAR_PASSWORD || "";
+// Vercel's Upstash integration may add a custom prefix (e.g. STORAGE_KV_REST_API_URL), so match by suffix.
+function findEnv(...suffixes) {
+  for (const s of suffixes) if (process.env[s]) return process.env[s];
+  for (const s of suffixes) {
+    const k = Object.keys(process.env).find((name) => name.endsWith("_" + s) && process.env[name]);
+    if (k) return process.env[k];
+  }
+  return "";
+}
+const REDIS_URL = findEnv("KV_REST_API_URL", "UPSTASH_REDIS_REST_URL");
+const REDIS_TOKEN = findEnv("KV_REST_API_TOKEN", "UPSTASH_REDIS_REST_TOKEN");
+const PASSWORD = (process.env.CELLAR_PASSWORD || "").trim();
 const KEYS = { wine: "cellar:wines", log: "cellar:log" };
 const ID = /^[\w.~:@+-]{1,100}$/;
 
@@ -20,7 +29,7 @@ async function redis(commands) {
 
 function authorised(key) {
   if (!PASSWORD) return false;
-  const a = crypto.createHash("sha256").update(String(key || "")).digest();
+  const a = crypto.createHash("sha256").update(String(key || "").trim()).digest();
   const b = crypto.createHash("sha256").update(PASSWORD).digest();
   return crypto.timingSafeEqual(a, b);
 }
